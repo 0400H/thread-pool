@@ -84,7 +84,7 @@ void stream<T>::worker(stream *ptr, int i) {
             auto task = ptr->contexts->p_task.front();
             ptr->contexts->p_task.pop();
             p_lock.unlock();
-            task->process();
+            task->run();
             {
                 std::lock_guard<std::mutex> c_lock(ptr->contexts->c_mt);
                 ptr->contexts->c_task.emplace_back(task);

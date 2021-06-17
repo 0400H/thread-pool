@@ -83,7 +83,7 @@ bool thread_pool<T>::wait(std::shared_ptr<T> task, double timeout) {
 template <typename T>
 bool thread_pool<T>::sync(std::shared_ptr<T> task, bool direct) {
     if (direct) {
-        task->process();
+        task->run();
         return true;
     } else {
         return this->wait(this->async(task));

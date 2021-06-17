@@ -1,21 +1,17 @@
 #include "threadpool.hpp"
+#include "task.hpp"
 
-#include <chrono>
-
-class task {
+class task : public task_base {
     private:
         int block_ms;
         bool verbose;
+        int task_id;
 
     public:
-        int task_id;
-        bool status;
-
         task(int block_ms, int task_id, bool verbose) {
             this->block_ms = block_ms;
             this->task_id = task_id;
             this->verbose = verbose;
-            this->status = false;
         };
 
         void process() {
@@ -38,12 +34,11 @@ class task {
                     }
                     break;
                 }
-            }
-            this->status = true;
+            };
         }
 
         int get() {
-            return this->block_ms;
+            return this->task_base::task_time;
         }
 };
 
