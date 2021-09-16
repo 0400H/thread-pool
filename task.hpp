@@ -1,7 +1,11 @@
-#ifndef __TASK_HPP__
-#define __TASK_HPP__
+#pragma once
+
+#ifndef __HPC_TASK_HPP__
+#define __HPC_TASK_HPP__
 
 #include <chrono>
+
+namespace hpc {
 
 class task_base {
     public:
@@ -29,4 +33,6 @@ class task_base {
         };
 };
 
-#endif // __TASK_HPP__
+}
+
+#endif // __HPC_TASK_HPP__

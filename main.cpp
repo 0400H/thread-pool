@@ -1,7 +1,7 @@
 #include "threadpool.hpp"
 #include "task.hpp"
 
-class task : public task_base {
+class task : public hpc::task_base {
     private:
         int block_ms;
         bool verbose;
@@ -44,9 +44,12 @@ class task : public task_base {
 
 int main() {
     int loop = 1000;
+    int streams = 0;
+    int threads = 0;
+    bool affinity = true;
     bool verbose = false;
 
-    class thread_pool<task> tp(0, 0, verbose);
+    class hpc::thread_pool<task> tp(streams, threads, affinity, verbose);
 
     // sync direct
     {
