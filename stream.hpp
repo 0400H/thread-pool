@@ -18,7 +18,7 @@ namespace hpc {
             stream(std::shared_ptr<thread_context<T>> context, int id);
 
             void create_threads();
-            void terminate_threads();
+            void clean_threads();
             void reset_threads();
 
         private:
@@ -50,7 +50,7 @@ namespace hpc {
     }
 
     template <typename T>
-    void stream<T>::terminate_threads() {
+    void stream<T>::clean_threads() {
         this->terminate = true;
         this->context->condition.notify_all();
 
@@ -60,12 +60,12 @@ namespace hpc {
                 std::cout << "stream:" << this->id << ", joined thread:" << i << std::endl;
             }
         }
-        this->work_threads.clear();
+        std::vector<std::thread> ().swap(this->work_threads);
     }
 
     template <typename T>
     void stream<T>::reset_threads() {
-        this->terminate_threads();
+        this->clean_threads();
         this->create_threads();
     }
 

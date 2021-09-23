@@ -4,8 +4,8 @@
 class task : public hpc::task_base {
     private:
         int block_ms;
-        bool verbose;
         int task_id;
+        bool verbose;
 
     public:
         task(int block_ms, int task_id, bool verbose) {
@@ -38,6 +38,7 @@ class task : public hpc::task_base {
         }
 
         int get() {
+            this->wait();
             return this->task_base::task_time;
         }
 };
@@ -51,7 +52,7 @@ int main() {
 
     class hpc::thread_pool<task> tp(streams, threads, affinity, verbose);
 
-    // sync direct
+    // sync api : direct
     {
         tp.reset_all();
 
@@ -74,7 +75,7 @@ int main() {
                   << std::endl;
     }
 
-    // sync use async api
+    // sync api : run by async api
     {
         tp.reset_all();
 

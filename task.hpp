@@ -31,6 +31,27 @@ class task_base {
                             / std::chrono::microseconds::period::den
                             * 1000;
         };
+
+        virtual bool wait(double wait_ms=0) final {
+            if (wait_ms == 0) {
+                while (!this->status) {};
+                return true;
+            } else {
+                auto start = std::chrono::system_clock::now();
+                while (!this->status) {
+                    auto end = std::chrono::system_clock::now();
+                    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+                    auto delay_ms = double(duration.count())
+                                  * std::chrono::microseconds::period::num
+                                  / std::chrono::microseconds::period::den
+                                  * 1000;
+                    if (delay_ms >= wait_ms) {
+                        return false;
+                    }
+                };
+                return true;
+            }
+        };
 };
 
 }

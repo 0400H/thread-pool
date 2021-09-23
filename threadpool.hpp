@@ -65,7 +65,8 @@ namespace hpc {
             double block_time = 0;
             while (task->status != true && block_time < timeout) {
                 auto end = std::chrono::system_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+                auto duration =
+                    std::chrono::duration_cast<std::chrono::microseconds>(end - start);
                 block_time = double(duration.count())
                             * std::chrono::microseconds::period::num
                             / std::chrono::microseconds::period::den
@@ -105,11 +106,16 @@ namespace hpc {
     template <typename T>
     void thread_pool<T>::clean_all() {
         for (auto &stream : this->streams) {
-            stream->terminate_threads();
+            stream->clean_threads();
         }
-
-        this->context->p_task = std::queue<std::shared_ptr<T>>();
-        std::vector<std::shared_ptr<T>>().swap(this->context->c_task);
+        {
+            std::lock_guard<std::mutex> p_lock(this->context->p_mt);
+            this->context->p_task = std::queue<std::shared_ptr<T>>();
+        }
+        {
+            std::lock_guard<std::mutex> c_lock(this->context->c_mt);
+            std::vector<std::shared_ptr<T>>().swap(this->context->c_task);
+        }
     }
 
     template <typename T>
