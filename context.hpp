@@ -15,12 +15,9 @@ namespace hpc {
     class thread_context {
         public:
             std::vector<std::vector<std::vector<int>>> affinity_infos;
+            std::queue<std::shared_ptr<T>> queue;
             std::condition_variable condition;
-            std::queue<std::shared_ptr<T>> p_task;
-            std::vector<std::shared_ptr<T>> c_task;
-            std::mutex p_mt;
-            std::mutex c_mt;
-            std::mutex io_mt;
+            std::mutex mt;
             bool verbose;
     };
 

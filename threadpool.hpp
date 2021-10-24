@@ -23,7 +23,7 @@ namespace hpc {
             std::shared_ptr<T> async(std::shared_ptr<T>);
             bool wait(std::shared_ptr<T>, double timeout=0);
             bool sync(std::shared_ptr<T>, bool direct=true);
-            std::vector<std::shared_ptr<T>> wait_all();
+            void wait_all();
             void clean_all();
             void reset_all();
 
@@ -48,8 +48,8 @@ namespace hpc {
     template <typename T>
     std::shared_ptr<T> thread_pool<T>::async(std::shared_ptr<T> task) {
         {
-            std::lock_guard<std::mutex> p_lock(this->context->p_mt);
-            this->context->p_task.push(task);
+            std::lock_guard<std::mutex> lock(this->context->mt);
+            this->context->queue.push(task);
         }
         this->context->condition.notify_one();
         return task;
@@ -91,16 +91,14 @@ namespace hpc {
     }
 
     template <typename T>
-    std::vector<std::shared_ptr<T>> thread_pool<T>::wait_all() {
+    void thread_pool<T>::wait_all() {
         {
-            std::unique_lock<std::mutex> p_lock(this->context->p_mt);
-            while (!this->context->p_task.empty()) {
-                p_lock.unlock();
-                p_lock.lock();
+            std::unique_lock<std::mutex> lock(this->context->mt);
+            while (!this->context->queue.empty()) {
+                lock.unlock();
+                lock.lock();
             };
         }
-
-        return this->context->c_task;
     }
 
     template <typename T>
@@ -109,12 +107,8 @@ namespace hpc {
             stream->clean_threads();
         }
         {
-            std::lock_guard<std::mutex> p_lock(this->context->p_mt);
-            this->context->p_task = std::queue<std::shared_ptr<T>>();
-        }
-        {
-            std::lock_guard<std::mutex> c_lock(this->context->c_mt);
-            std::vector<std::shared_ptr<T>>().swap(this->context->c_task);
+            std::lock_guard<std::mutex> lock(this->context->mt);
+            this->context->queue = std::queue<std::shared_ptr<T>>();
         }
     }
 

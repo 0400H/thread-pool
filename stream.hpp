@@ -74,9 +74,9 @@ namespace hpc {
         set_thread_affinity(ptr->context->affinity_infos[ptr->id][i]);
 
         while (!ptr->terminate) {
-            std::unique_lock<std::mutex> p_lock(ptr->context->p_mt);
-            ptr->context->condition.wait(p_lock, [ptr] {
-                return (ptr->terminate || !ptr->context->p_task.empty());
+            std::unique_lock<std::mutex> lock(ptr->context->mt);
+            ptr->context->condition.wait(lock, [ptr] {
+                return (ptr->terminate || !ptr->context->queue.empty());
             });
 
             if (ptr->terminate) {
@@ -85,14 +85,11 @@ namespace hpc {
                 }
                 break;
             } else {
-                auto task = ptr->context->p_task.front();
-                ptr->context->p_task.pop();
-                p_lock.unlock();
+                auto task = ptr->context->queue.front();
+                ptr->context->queue.pop();
+                lock.unlock();
                 task->run();
-                {
-                    std::lock_guard<std::mutex> c_lock(ptr->context->c_mt);
-                    ptr->context->c_task.emplace_back(task);
-                }
+                ptr->context->condition.notify_one();
             }
         }
     }
@@ -106,9 +103,7 @@ namespace hpc {
 
         std::vector<std::shared_ptr<stream<T>>> streams;
         for (auto i = 0; i < context->affinity_infos.size(); i++) {
-            streams.emplace_back(
-                std::make_shared<stream<T>>(context, i)
-            );
+            streams.emplace_back(std::make_shared<stream<T>>(context, i));
         }
         return streams;
     }
